@@ -12,5 +12,7 @@
 */
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    return 'Contact API. Direct access forbidden!';
 });
+
+$router->post('/contact', 'ContactController@processMessage');
