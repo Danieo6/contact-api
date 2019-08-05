@@ -16,3 +16,5 @@ $router->get('/', function () use ($router) {
 });
 
 $router->post('/contact', 'ContactController@processMessage');
+
+$router->get('/log', 'LogController@getLog');

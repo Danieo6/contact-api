@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Validator;
+
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use App\Rules\ReCaptcha;
+use Validator;
 
 class ContactController extends Controller
 {
@@ -18,19 +20,27 @@ class ContactController extends Controller
             'recaptcha' => ['required', new ReCaptcha]
         ]);
 
-        if($validator->fails())
-        {
+        if ($validator->fails())
             return response()->json(['errors' => $validator->errors()->all()], 400);
-        }
 
-        $from = $req->email;
+        $this->sendMail($req->email, $req->message);
 
-        Mail::raw($req->message, function($message) use ($from) {
-            $message->to(env('EMAIL'))
+        $this->saveMessage($req->email, $req->message);
+
+        return response()->json(['status' => 'ok'], 200);
+    }
+
+    private function sendMail($from, $message)
+    {
+        Mail::raw($message, function($msg) use ($from) {
+            $msg->to(env('EMAIL'))
                     ->from($from)
                     ->subject($from.' send you a message!');
         });
+    }
 
-        return response()->json(['status' => 'ok'], 200);
+    private function saveMessage($from, $message)
+    {
+        DB::insert('INSERT INTO `messages` (`from`, `message`, `created`) VALUES (?, ?, ?)', [$from, $message, date('Y-m-d H:i:s')]);
     }
 }
